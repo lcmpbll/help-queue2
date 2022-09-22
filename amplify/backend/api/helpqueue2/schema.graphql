@@ -1,0 +1,6 @@
+type HelpTicket @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  names: String
+  location: String
+  issue: String
+}
