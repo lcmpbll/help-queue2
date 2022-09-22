@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState } from 'react';
 import NewTicketForm from './NewTicketForm';
 import TicketList from './TicketList';
 import TicketDetail from './TicketDetail';
@@ -7,36 +7,50 @@ import { connect } from 'react-redux';
 import PropTypes from "prop-types";
 import * as a from './../actions';
 import { formatDistanceToNow } from 'date-fns';
+import { API } from 'aws-amplify';
+import { listTickets } from '../graphql/queries';
+import { createTicket as createTicketMutation, deleteTicket as deleteTicketMutation } from '../graphql/mutations';
 
-class TicketControl extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      selectedTicket: null,
-      editing: false
-    };
+
+// class TicketControl extends React.Component
+
+// constructor(props) {
+  //   super(props);
+  //   this.state = {
+    //     selectedTicket: null,
+    //     editing: false
+    //   };
+    // }
+function TicketControl() {
+  
+  const [mainTicketList, setMainTicketList] = useState([]);
+  const [formVisibleOnPage, setFormVisibleOnPage] = useState(false);
+  const [selectedTicket, setSeletectedTicket] = useState(null);
+  const [editing, setEditing] = useState(false);
+  // const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+  
+  async function fetchTickets() {
+    const apiData = await API.graphql({ query: listTickets });
+    console.log(listTickets);
+    setMainTicketList(apiData.data.listTickets.items);
   }
   
-  componentDidMount() {
-    this.waitTimeUpdateTimer = setInterval(() => this.updateTicketElapsedWaitTime(), 60000);
-  }
-  
-  componentWillUnmount() {
-    clearInterval(this.waitTimeUpdateTimer);
-  }
-  
-  updateTicketElapsedWaitTime = () => {
-    const { dispatch } = this.props;
-    Object.values(this.props.mainTicketList).forEach(ticket => {
-      const newFormattedWaitTime = formatDistanceToNow(ticket.timeOpen, {addSuffix: true});
+  // const updateTicketElapsedWaitTime = () => {
+  //   const { dispatch } = this.props;
+  //   Object.values(this.props.mainTicketList).forEach(ticket => {
+  //     const newFormattedWaitTime = formatDistanceToNow(ticket.timeOpen, {addSuffix: true});
     
-      const action = a.updateTime(ticket.id, newFormattedWaitTime);
-      dispatch(action);
-    });
-  }
+  //     const action = a.updateTime(ticket.id, newFormattedWaitTime);
+  //     dispatch(action);
+  //   });
+  // }
 
-  handleEditingTicketInList = (ticketToEdit) => {
+  const handleEditingTicketInList = (ticketToEdit) => {
     const { dispatch } = this.props;
     const action = a.addTicket(ticketToEdit);
     dispatch(action);
@@ -46,87 +60,82 @@ class TicketControl extends React.Component {
     });
   }
 
-  handleEditClick = () => {
-    this.setState({editing: true});
+  const handleEditClick = () => {
+    setEditing(true);
   }
 
-  handleDeletingTicket = (id) => {
-    const { dispatch } = this.props;
-    const action = a.deleteTicket(id);
-    dispatch(action);
-    this.setState({selectedTicket: null});
+  const handleDeletingTicket = async ({id}) => {
+    const newMainTicketList = listTickets.filter(ticket => ticket.id !== id);
+    setMainTicketList(newMainTicketList);
+    await API.graphql({query : deleteTicketMutation, variables: { input: { id }}});
+    setSeletectedTicket(null);
   }
 
-  handleChangingSelectedTicket = (id) => {
-    const selectedTicket = this.props.mainTicketList[id];
-    this.setState({selectedTicket: selectedTicket});
+  const handleChangingSelectedTicket = (id) => {
+    const selection = mainTicketList.filter((ticket) => ticket.id === id)[0];
+    setSeletectedTicket(selection);
   }
 
-  handleAddingNewTicketToList = (newTicket) => {
-    const  { dispatch } = this.props;
-    const action = a.addTicket(newTicket);
-    dispatch(action);
-    const action2 = a.toggleForm();
-    dispatch(action2);
+  const handleAddingNewTicketToList = async (newTicket) => {
+    console.log(newTicket);
+    await API.graphql({ query : createTicketMutation, variables : {input: newTicket}});
+    setMainTicketList([...mainTicketList, newTicket]);
+    console.log(mainTicketList);
+    setFormVisibleOnPage(false);
   }
 
-  handleClick = () => {
-  if (this.state.selectedTicket != null) {
-      this.setState({
-     
-        selectedTicket: null,
-        editing: false
-    });
-  } else {
-    const { dispatch } = this.props;
-    const action = a.toggleForm();
-    
-    dispatch(action);
-  }
-}
+  const handleClick = () => {
+  if (selectedTicket != null) {
+      setFormVisibleOnPage(false);
+      setSeletectedTicket(null);
+      setEditing(false);
+    } else {
+      setFormVisibleOnPage(!formVisibleOnPage);
+    }
+  };
 
-  render(){
+  
     let currentlyVisibleState = null;
     let buttonText = null;
-    if (this.state.editing ) {      
-      currentlyVisibleState = <EditTicketForm ticket = {this.state.selectedTicket} 
-      onEditTicket = {this.handleEditingTicketInList} />
+    if (editing) {      
+      currentlyVisibleState = <EditTicketForm ticket = {selectedTicket} 
+      onEditTicket = {handleEditingTicketInList} />
       buttonText = "Return to Ticket List";
-    } else if (this.state.selectedTicket != null) {
-      currentlyVisibleState = <TicketDetail ticket = {this.state.selectedTicket} 
-      onClickingDelete = {this.handleDeletingTicket}
-      onClickingEdit = {this.handleEditClick} />
+    } else if (selectedTicket != null) {
+      currentlyVisibleState = <TicketDetail ticket = {selectedTicket} 
+      onClickingDelete = {handleDeletingTicket}
+      onClickingEdit = {handleEditClick} />
       buttonText = "Return to Ticket List";
-    } else if (this.props.formVisibleOnPage) {
-      currentlyVisibleState = <NewTicketForm onNewTicketCreation={this.handleAddingNewTicketToList} />
+    } else if (formVisibleOnPage) {
+      currentlyVisibleState = <NewTicketForm onNewTicketCreation={handleAddingNewTicketToList} />
       buttonText = "Return to Ticket List";
     } else {
-      currentlyVisibleState = <TicketList ticketList={this.props.mainTicketList}
-      onTicketSelection={this.handleChangingSelectedTicket} />;
+      currentlyVisibleState = <TicketList ticketList={mainTicketList}
+      onTicketSelection={handleChangingSelectedTicket} />;
       buttonText = "Add Ticket";
     }
     return (
       <React.Fragment>
         {currentlyVisibleState}
-        <button onClick={this.handleClick}>{buttonText}</button>
+        <button onClick={handleClick}>{buttonText}</button>
       </React.Fragment>
     );
   }
-}
+
 
 TicketControl.propTypes = {
   mainTicketList: PropTypes.object,
   formVisibleOnPage: PropTypes.bool
 };
 
-const mapStateToProps = state => {
-  return {
-    mainTicketList: state.mainTicketList,
-    formVisibleOnPage: state.formVisibleOnPage
-  }
-}
+// const mapStateToProps = state => {
+//   return {
+//     mainTicketList: state.mainTicketList,
+//     formVisibleOnPage: state.formVisibleOnPage
+//   }
+// }
 
-TicketControl = connect(mapStateToProps)(TicketControl);
+// TicketControl = connect(mapStateToProps)(TicketControl);
 export default TicketControl;
 
 

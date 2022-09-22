@@ -1,7 +1,8 @@
 import React from "react";
 import Header from "./Header";
 import TicketControl from "./TicketControl";
-import { withAuthenticator, Button, Heading, Image, View, Card } from '@aws-amplify/ui-react';
+import { withAuthenticator, Button, Heading, View, Card } from '@aws-amplify/ui-react';
+import "@aws-amplify/ui-react/styles.css";
 
 function App({signOut}){
   return ( 
