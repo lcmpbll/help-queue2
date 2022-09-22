@@ -10,7 +10,7 @@
 
 # production
 /build
-
+/models
 # misc
 .env
 .DS_Store
