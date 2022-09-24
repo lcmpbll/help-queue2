@@ -11,6 +11,7 @@ export const createTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }
@@ -26,6 +27,7 @@ export const updateTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }
@@ -41,6 +43,7 @@ export const deleteTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }

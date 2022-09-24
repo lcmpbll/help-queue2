@@ -8,6 +8,7 @@ export const getTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }
@@ -25,6 +26,7 @@ export const listTickets = /* GraphQL */ `
         names
         location
         issue
+        image
         createdAt
         updatedAt
       }

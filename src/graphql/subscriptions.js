@@ -8,6 +8,7 @@ export const onCreateTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }
@@ -20,6 +21,7 @@ export const onUpdateTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }
@@ -32,6 +34,7 @@ export const onDeleteTicket = /* GraphQL */ `
       names
       location
       issue
+      image
       createdAt
       updatedAt
     }
