@@ -7,6 +7,6 @@ type Ticket @model {
   names: String!
   location: String
   issue: String
-  
+  image: String
   
 }
