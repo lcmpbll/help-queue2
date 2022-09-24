@@ -1,0 +1,14 @@
+{
+  "resourceName": "imageStorage",
+  "policyUUID": "cab1453a",
+  "bucketName": "helpqueue2df8e1335ad2c481fa8b900b2ad766cb0",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}
