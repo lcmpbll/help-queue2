@@ -7,9 +7,10 @@ import { connect } from 'react-redux';
 import PropTypes from "prop-types";
 import * as a from './../actions';
 import { formatDistanceToNow } from 'date-fns';
-import { API } from 'aws-amplify';
+import { API, Storage } from 'aws-amplify';
 import { listTickets } from '../graphql/queries';
 import { createTicket as createTicketMutation, deleteTicket as deleteTicketMutation } from '../graphql/mutations';
+import { StorageGateway } from 'aws-sdk';
 
 
 
@@ -36,8 +37,16 @@ function TicketControl() {
   
   async function fetchTickets() {
     const apiData = await API.graphql({ query: listTickets });
-    console.log(listTickets);
     const apiTickets = apiData.data.listTickets.items;
+    await Promise.all(apiTickets.map(async(ticket) => {
+      if(ticket.image){
+        const url = await Storage.get(ticket.names);
+        ticket.image = url;
+      }
+      console.log(ticket);
+      return ticket;
+     })
+    );
     console.log(apiTickets);
     setMainTicketList(apiTickets);
   }
@@ -66,10 +75,14 @@ function TicketControl() {
     setEditing(true);
   }
 
-  const handleDeletingTicket = async ({id}) => {
-    const newMainTicketList = listTickets.filter(ticket => ticket.id !== id);
+  const handleDeletingTicket = async (ticketToDelete) => {
+    console.log(ticketToDelete.names);
+    let id = ticketToDelete.id;
+    const newMainTicketList = mainTicketList.filter((ticket) => ticket.id !== ticketToDelete.id);
     setMainTicketList(newMainTicketList);
-    await API.graphql({query : deleteTicketMutation, variables: { input: { id }}});
+    await Storage.remove(ticketToDelete.names);
+    await API.graphql({query : deleteTicketMutation, variables: { input: { id }},
+    });
     setSeletectedTicket(null);
   }
 
@@ -80,6 +93,7 @@ function TicketControl() {
 
   const handleAddingNewTicketToList = async (newTicket) => {
     console.log(newTicket);
+    if(!!newTicket.image) await Storage.put(newTicket.names, newTicket.image);
     await API.graphql({ query : createTicketMutation, variables : {input: newTicket}});
     // setMainTicketList([...mainTicketList, newTicket]);
     // console.log(mainTicketList);
