@@ -37,7 +37,9 @@ function TicketControl() {
   async function fetchTickets() {
     const apiData = await API.graphql({ query: listTickets });
     console.log(listTickets);
-    setMainTicketList(apiData.data.listTickets.items);
+    const apiTickets = apiData.data.listTickets.items;
+    console.log(apiTickets);
+    setMainTicketList(apiTickets);
   }
   
   // const updateTicketElapsedWaitTime = () => {
@@ -79,8 +81,10 @@ function TicketControl() {
   const handleAddingNewTicketToList = async (newTicket) => {
     console.log(newTicket);
     await API.graphql({ query : createTicketMutation, variables : {input: newTicket}});
-    setMainTicketList([...mainTicketList, newTicket]);
-    console.log(mainTicketList);
+    // setMainTicketList([...mainTicketList, newTicket]);
+    // console.log(mainTicketList);
+    fetchTickets();
+    
     setFormVisibleOnPage(false);
   }
 
