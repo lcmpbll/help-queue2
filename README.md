@@ -1,6 +1,6 @@
 # Help Queue
 
-## A hlep queue ticket creating app.
+## A help queue ticket creating app.
 
 ### By Liam Campbell, Garrett Hayes, Ben Gooddrow
 
