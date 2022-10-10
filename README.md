@@ -2,7 +2,7 @@
 
 ## A help queue ticket creating app.
 
-### By Liam Campbell, Garrett Hayes, Ben Gooddrow
+### By Liam Campbell, Garrett Hayes, Ben Gooddrow, and Sandra Tena
 
 ## Table of Contents
 
